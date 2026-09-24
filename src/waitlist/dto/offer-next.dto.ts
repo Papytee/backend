@@ -4,7 +4,7 @@ export class OfferNextDto {
   @IsInt()
   @Min(1)
   @Max(500)
-  count: number;
+  count!: number;
 
   /** Offer validity window in milliseconds. Defaults to 24h in the service. */
   @IsOptional()

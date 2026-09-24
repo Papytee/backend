@@ -7,5 +7,5 @@ export class RevokeBatchDto {
     each: true,
     message: 'Each ticket ID must not exceed 100 characters',
   })
-  ticketIds: string[];
+  ticketIds!: string[];
 }

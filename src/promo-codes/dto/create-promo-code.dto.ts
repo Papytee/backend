@@ -14,15 +14,15 @@ export class CreatePromoCodeDto {
     message:
       'code must be 3-32 characters of uppercase letters, digits, underscore, or hyphen',
   })
-  code: string;
+  code!: string;
 
   @IsEnum(PromoCodeDiscountType)
-  discountType: PromoCodeDiscountType;
+  discountType!: PromoCodeDiscountType;
 
   /** Basis points (0-10000) for PERCENT, or a smallest-unit amount for FIXED. */
   @IsInt()
   @Min(1)
-  discountValue: number;
+  discountValue!: number;
 
   @IsOptional()
   @IsInt()

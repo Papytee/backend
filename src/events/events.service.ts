@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -98,10 +99,28 @@ export class EventsService {
       throw new BadRequestException('Call publish before confirm-publish');
     }
 
-    await this.stellar.submitSignedTransaction(signedXdr);
+    const { txHash } = await this.stellar.submitSignedTransaction(signedXdr);
     return this.prisma.event.update({
       where: { id: eventId },
-      data: { status: EventStatus.PUBLISHED },
+      data: { status: EventStatus.PUBLISHED, publishedTxHash: txHash },
+    });
+  }
+
+  async unpublish(userId: string, eventId: string) {
+    const event = await this.getWithOrg(eventId);
+    await this.organizations.assertMember(event.organizationId, userId);
+    if (event.status !== EventStatus.PUBLISHED) {
+      throw new BadRequestException('Only published events can be unpublished');
+    }
+    const ticketCount = await this.prisma.ticket.count({ where: { eventId } });
+    if (ticketCount > 0) {
+      throw new ConflictException(
+        'Cannot unpublish an event with issued tickets',
+      );
+    }
+    return this.prisma.event.update({
+      where: { id: eventId },
+      data: { status: EventStatus.DRAFT },
     });
   }
 
