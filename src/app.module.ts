@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validate } from './config/env.validation';
+import { FeatureFlagsModule } from './config/feature-flags.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -18,10 +20,13 @@ import { GatesModule } from './gates/gates.module';
 import { ScannerDevicesModule } from './scanner-devices/scanner-devices.module';
 import { PendingTxModule } from './pending-tx/pending-tx.module';
 import { BigIntSerializerInterceptor } from './common/interceptors/bigint-serializer.interceptor';
+import { RequestTimeoutInterceptor } from './common/interceptors/request-timeout.interceptor';
+import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate }),
+    FeatureFlagsModule,
     PrismaModule,
     StellarModule,
     AuthModule,
@@ -42,6 +47,14 @@ import { BigIntSerializerInterceptor } from './common/interceptors/bigint-serial
     {
       provide: APP_INTERCEPTOR,
       useClass: BigIntSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestTimeoutInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter,
     },
   ],
 })
